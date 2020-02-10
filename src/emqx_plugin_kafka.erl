@@ -148,8 +148,7 @@ on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
 
 on_message_publish(Message, _Env) ->
     io:format("Publish ~s~n", [emqx_message:format(Message)]),
-    {ok, KafkaTopic} = application:get_env(emqx_bridge_kafka, values),
-    ProduceTopic = proplists:get_value(kafka_producer_topic, KafkaTopic),
+    ProduceTopic = application:get_env(?APP, topic),
     Topic=Message#message.topic,
     Payload=Message#message.payload,
     Qos=Message#message.qos,
@@ -205,9 +204,8 @@ unload() ->
 %% Init kafka server parameters
 ekaf_init(_Env) ->
     application:load(ekaf),
-    {ok, Values} = application:get_env(emqx_bridge_kafka, values),
-    BootstrapBroker = proplists:get_value(bootstrap_broker, Values),
-    PartitionStrategy= proplists:get_value(partition_strategy, Values),
+    BootstrapBroker = {proplists:get_env(?APP, server), proplists:get_env(?APP, port)}
+    PartitionStrategy= proplists:get_value(?APP, partition_strategy),
     application:set_env(ekaf, ekaf_partition_strategy, PartitionStrategy),
     application:set_env(ekaf, ekaf_bootstrap_broker, BootstrapBroker),
     {ok, _} = application:ensure_all_started(ekaf),

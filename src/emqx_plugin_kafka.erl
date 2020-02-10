@@ -210,4 +210,4 @@ ekaf_init(_Env) ->
     %%application:set_env(ekaf, ekaf_partition_strategy, PartitionStrategy),
     application:set_env(ekaf, ekaf_bootstrap_broker, BootstrapBroker),
     {ok, _} = application:ensure_all_started(ekaf),
-    io:format("Initialized ekaf with ~p~n", [BootstrapBroker]).    
+    io:format("Initialized ekaf with ~p~n", [application:get_env(?APP, server)]).    

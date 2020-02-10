@@ -91,10 +91,30 @@ on_client_connack(ConnInfo = #{clientid := ClientId}, Rc, Props, _Env) ->
 on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
     io:format("Client(~s) connected, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
               [ClientId, ClientInfo, ConnInfo]).
+    {ok, ProduceTopic} = application:get_env(?APP, etopic),
+    Json = jsx:encode([
+            {type,<<"onnected">>},
+            {id,ClientId},
+            {info,ClientInfo},
+            {cinfo,ConnInfo}},
+            {ts,emqx_time:now_to_secs(Timestamp)}
+    ]),
+    ekaf:produce_async(ProduceTopic, Json),
+    {ok, Message}.
 
 on_client_disconnected(ClientInfo = #{clientid := ClientId}, ReasonCode, ConnInfo, _Env) ->
     io:format("Client(~s) disconnected due to ~p, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
               [ClientId, ReasonCode, ClientInfo, ConnInfo]).
+    {ok, ProduceTopic} = application:get_env(?APP, etopic),
+    Json = jsx:encode([
+            {type,<<"disconnected">>},
+            {id,ClientId},
+            {code,ReasonCode},
+            {info,ClientInfo},
+            {cinfo,ConnInfo}},
+            {ts,emqx_time:now_to_secs(Timestamp)}
+    ]),
+    ekaf:produce_async(ProduceTopic, Json),
 
 on_client_authenticate(_ClientInfo = #{clientid := ClientId}, Result, _Env) ->
     io:format("Client(~s) authenticate, Result:~n~p~n", [ClientId, Result]),
@@ -149,7 +169,7 @@ on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
 
 on_message_publish(Message, _Env) ->
     io:format("Publish ~s~n", [emqx_message:format(Message)]),
-    ProduceTopic = application:get_env(?APP, topic),
+    {ok, ProduceTopic} = application:get_env(?APP, dtopic),
     Topic=Message#message.topic,
     Payload=Message#message.payload,
     Qos=Message#message.qos,
@@ -160,7 +180,7 @@ on_message_publish(Message, _Env) ->
             {payload,Payload},
             {qos,Qos},
             {cluster_node,node()}
-            %% ,{ts,emqx_time:now_to_secs(Timestamp)}
+            {ts,emqx_time:now_to_secs(Timestamp)}
     ]),
     ekaf:produce_async(ProduceTopic, Json),
     {ok, Message}.

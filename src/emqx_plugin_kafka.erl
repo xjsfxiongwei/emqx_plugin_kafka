@@ -90,7 +90,7 @@ on_client_connack(ConnInfo = #{clientid := ClientId}, Rc, Props, _Env) ->
 
 on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
     io:format("Client(~s) connected, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
-              [ClientId, ClientInfo, ConnInfo]).
+              [ClientId, ClientInfo, ConnInfo]),
     {ok, ProduceTopic} = application:get_env(?APP, etopic),
     Json = jsx:encode([
             {type,<<"onnected">>},
@@ -104,7 +104,7 @@ on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
 
 on_client_disconnected(ClientInfo = #{clientid := ClientId}, ReasonCode, ConnInfo, _Env) ->
     io:format("Client(~s) disconnected due to ~p, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
-              [ClientId, ReasonCode, ClientInfo, ConnInfo]).
+              [ClientId, ReasonCode, ClientInfo, ConnInfo]),
     {ok, ProduceTopic} = application:get_env(?APP, etopic),
     Json = jsx:encode([
             {type,<<"disconnected">>},
@@ -179,7 +179,7 @@ on_message_publish(Message, _Env) ->
             {topic,Topic},
             {payload,Payload},
             {qos,Qos},
-            {cluster_node,node()}
+            {cluster_node,node()},
             {ts,emqx_time:now_to_secs(Timestamp)}
     ]),
     ekaf:produce_async(ProduceTopic, Json),

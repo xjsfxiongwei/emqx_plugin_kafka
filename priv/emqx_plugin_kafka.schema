@@ -1,0 +1,22 @@
+%%-*- mode: erlang -*-
+%% emqx_plugin_kafka config mapping
+{mapping, "kafka.server", "emqx_plugin_kafka.server", [
+  {default, {"127.0.0.1", 9092}},
+  {datatype, [integer, ip, string]}
+]}.
+
+
+{mapping, "kafka.username", "emqx_plugin_kafka.server", [
+  {default, ""},
+  {datatype, string}
+]}.
+
+{mapping, "kafka.password", "emqx_plugin_kafka.server", [
+  {default, ""},
+  {datatype, string}
+]}.
+
+{mapping, "kafka.topic", "emqx_plugin_kafka.server", [
+  {default, ""},
+  {datatype, string}
+]}.

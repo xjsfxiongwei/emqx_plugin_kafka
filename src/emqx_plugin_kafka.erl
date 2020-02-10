@@ -94,9 +94,7 @@ on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
     ProduceTopic = application:get_env(?APP, etopic, <<"etopic">>),
     Json = jsx:encode([
             {type, <<"onnected">>},
-            {id, ClientId},
-            {info, ClientInfo},
-            {cinfo, ConnInfo}
+            {id, ClientId}
             %%{ts, erlang:now()}
     ]),
     ekaf:produce_async(list_to_binary(ProduceTopic), Json).
@@ -108,9 +106,7 @@ on_client_disconnected(ClientInfo = #{clientid := ClientId}, ReasonCode, ConnInf
     Json = jsx:encode([
             {type,<<"disconnected">>},
             {id, ClientId},
-            {code, ReasonCode},
-            {info, ClientInfo},
-            {cinfo, ConnInfo}
+            {code, ReasonCode}
             %%{ts, erlang:now()}
     ]),
     ekaf:produce_async(list_to_binary(ProduceTopic), Json).

@@ -99,7 +99,7 @@ on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
             {cinfo, ConnInfo}
             %%{ts, erlang:now()}
     ]),
-    ekaf:produce_async(ProduceTopic, Json).
+    ekaf:produce_async(list_to_binary(ProduceTopic), Json).
 
 on_client_disconnected(ClientInfo = #{clientid := ClientId}, ReasonCode, ConnInfo, _Env) ->
     io:format("Client(~s) disconnected due to ~p, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
@@ -113,7 +113,7 @@ on_client_disconnected(ClientInfo = #{clientid := ClientId}, ReasonCode, ConnInf
             {cinfo, ConnInfo}
             %%{ts, erlang:now()}
     ]),
-    ekaf:produce_async(ProduceTopic, Json).
+    ekaf:produce_async(list_to_binary(ProduceTopic), Json).
 
 on_client_authenticate(_ClientInfo = #{clientid := ClientId}, Result, _Env) ->
     io:format("Client(~s) authenticate, Result:~n~p~n", [ClientId, Result]),
@@ -181,7 +181,7 @@ on_message_publish(Message, _Env) ->
             {cluster_node,node()}
             %%{ts, erlang:now()}
     ]),
-    ekaf:produce_async(ProduceTopic, Json),
+    ekaf:produce_async(list_to_binary(ProduceTopic), Json),
     {ok, Message}.
 
 on_message_dropped(#message{topic = <<"$SYS/", _/binary>>}, _By, _Reason, _Env) ->

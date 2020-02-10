@@ -181,7 +181,7 @@ on_message_publish(Message, _Env) ->
             {cluster_node,node()}
             %%{ts, erlang:now()}
     ]),
-    ekaf:produce_async(ProduceTopic, Json),
+    ekaf:produce_async(<<ProduceTopic>>, Json),
     {ok, Message}.
 
 on_message_dropped(#message{topic = <<"$SYS/", _/binary>>}, _By, _Reason, _Env) ->
@@ -228,6 +228,7 @@ ekaf_init(_Env) ->
     {ok, Port} = application:get_env(?APP, port),
     %%PartitionStrategy= proplists:get_value(?APP, partition_strategy),
     %%application:set_env(ekaf, ekaf_partition_strategy, PartitionStrategy),
+    application:set_env(ekaf, ekaf_partition_strategy, strict_round_robin),
     application:set_env(ekaf, ekaf_bootstrap_broker, {Server, Port}),
     {ok, _} = application:ensure_all_started(ekaf),
     io:format("Initialized ekaf with ~p~n", [{Server, Port}]).    

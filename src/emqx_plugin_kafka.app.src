@@ -7,8 +7,8 @@
   {mod, {emqx_plugin_kafka_app,[]}},
   {env, []},
   {licenses, ["Apache-2.0"]},
-  {maintainers, ["EMQ X Team <contact@emqx.io>"]},
-  {links, [{"Homepage", "https://emqx.io/"},
-           {"Github", "https://github.com/xjsfxiongwei/emqx-plugin-kafka"}
+  {maintainers, ["liongway  <xiongwei@liongway.cn>"]},
+  {links, [{"Homepage", "http://liongway.cn/"},
+           {"Github", "https://github.com/xjsfxiongwei/emqx_plugin_kafka"}
           ]}
  ]}.

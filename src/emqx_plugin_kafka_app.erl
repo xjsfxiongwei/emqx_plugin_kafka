@@ -18,7 +18,7 @@
 
 -behaviour(application).
 
--emqx_plugin(?MODULE).
+-emqx_plugin(kafka).
 
 -export([ start/2
         , stop/1

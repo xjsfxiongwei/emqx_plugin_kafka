@@ -1,1 +1,1 @@
--define(APP, emqx_plugin_kalfa).
+-define(APP, emqx_plugin_kafka).

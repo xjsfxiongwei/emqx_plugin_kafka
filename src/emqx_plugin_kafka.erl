@@ -93,11 +93,11 @@ on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
               [ClientId, ClientInfo, ConnInfo]),
     {ok, ProduceTopic} = application:get_env(?APP, etopic),
     Json = jsx:encode([
-            {type,<<"onnected">>},
-            {id,ClientId},
-            {info,ClientInfo},
-            {cinfo,ConnInfo}},
-            {ts,emqx_time:now_to_secs(Timestamp)}
+            {type, <<"onnected">>},
+            {id, ClientId},
+            {info, ClientInfo},
+            {cinfo, ConnInfo}
+            %%{ts, erlang:now()}
     ]),
     ekaf:produce_async(ProduceTopic, Json),
     {ok, Message}.
@@ -108,11 +108,11 @@ on_client_disconnected(ClientInfo = #{clientid := ClientId}, ReasonCode, ConnInf
     {ok, ProduceTopic} = application:get_env(?APP, etopic),
     Json = jsx:encode([
             {type,<<"disconnected">>},
-            {id,ClientId},
-            {code,ReasonCode},
-            {info,ClientInfo},
-            {cinfo,ConnInfo}},
-            {ts,emqx_time:now_to_secs(Timestamp)}
+            {id, ClientId},
+            {code, ReasonCode},
+            {info, ClientInfo},
+            {cinfo, ConnInfo}
+            %%{ts, erlang:now()}
     ]),
     ekaf:produce_async(ProduceTopic, Json),
 
@@ -178,9 +178,8 @@ on_message_publish(Message, _Env) ->
             {type,<<"published">>},
             {topic,Topic},
             {payload,Payload},
-            {qos,Qos},
-            {cluster_node,node()},
-            {ts,emqx_time:now_to_secs(Timestamp)}
+            {qos, Qos}
+            %%{ts, erlang:now()}
     ]),
     ekaf:produce_async(ProduceTopic, Json),
     {ok, Message}.

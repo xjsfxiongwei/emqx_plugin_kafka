@@ -104,7 +104,7 @@ on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
 on_client_disconnected(ClientInfo = #{clientid := ClientId}, ReasonCode, ConnInfo, _Env) ->
     io:format("Client(~s) disconnected due to ~p, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
               [ClientId, ReasonCode, ClientInfo, ConnInfo]),
-    ProduceTopic = application:get_env(?APP, etopic, , <<"etopic">>),
+    ProduceTopic = application:get_env(?APP, etopic, <<"etopic">>),
     Json = jsx:encode([
             {type,<<"disconnected">>},
             {id, ClientId},

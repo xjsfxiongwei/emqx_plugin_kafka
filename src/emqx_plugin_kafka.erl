@@ -178,7 +178,8 @@ on_message_publish(Message, _Env) ->
             {type,<<"published">>},
             {topic,Topic},
             {payload,Payload},
-            {qos, Qos}
+            {qos, Qos},
+            {cluster_node,node()}
             %%{ts, erlang:now()}
     ]),
     ekaf:produce_async(ProduceTopic, Json),

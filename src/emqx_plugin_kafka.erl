@@ -207,9 +207,8 @@ ekaf_init(_Env) ->
     application:load(ekaf),
     {ok, Server} = application:get_env(?APP, server),
     {ok, Port} = application:get_env(?APP, port),
-    BootstrapBroker = {Server, Port},
     %%PartitionStrategy= proplists:get_value(?APP, partition_strategy),
     %%application:set_env(ekaf, ekaf_partition_strategy, PartitionStrategy),
-    application:set_env(ekaf, ekaf_bootstrap_broker, BootstrapBroker),
+    application:set_env(ekaf, ekaf_bootstrap_broker, {Server, Port}),
     {ok, _} = application:ensure_all_started(ekaf),
-    io:format("Initialized ekaf with ~p~n", [BootstrapBroker]).    
+    io:format("Initialized ekaf with ~p~n", [{Server, Port}]).    

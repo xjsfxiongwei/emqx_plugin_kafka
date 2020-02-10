@@ -91,7 +91,7 @@ on_client_connack(ConnInfo = #{clientid := ClientId}, Rc, Props, _Env) ->
 on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
     io:format("Client(~s) connected, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
               [ClientId, ClientInfo, ConnInfo]),
-    {ok, ProduceTopic} = application:get_env(?APP, etopic),
+    ProduceTopic = application:get_env(?APP, etopic, <<"etopic">>),
     Json = jsx:encode([
             {type, <<"onnected">>},
             {id, ClientId},
@@ -104,7 +104,7 @@ on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
 on_client_disconnected(ClientInfo = #{clientid := ClientId}, ReasonCode, ConnInfo, _Env) ->
     io:format("Client(~s) disconnected due to ~p, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
               [ClientId, ReasonCode, ClientInfo, ConnInfo]),
-    {ok, ProduceTopic} = application:get_env(?APP, etopic),
+    ProduceTopic = application:get_env(?APP, etopic, , <<"etopic">>),
     Json = jsx:encode([
             {type,<<"disconnected">>},
             {id, ClientId},
@@ -168,7 +168,7 @@ on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
 
 on_message_publish(Message, _Env) ->
     io:format("Publish ~s~n", [emqx_message:format(Message)]),
-    {ok, ProduceTopic} = application:get_env(?APP, topic),
+    ProduceTopic = application:get_env(?APP, topic, <<"dtopic">>),
     Topic=Message#message.topic,
     Payload=Message#message.payload,
     Qos=Message#message.qos,
@@ -181,7 +181,7 @@ on_message_publish(Message, _Env) ->
             {cluster_node,node()}
             %%{ts, erlang:now()}
     ]),
-    ekaf:produce_async(<<ProduceTopic>>, Json),
+    ekaf:produce_async(ProduceTopic, Json),
     {ok, Message}.
 
 on_message_dropped(#message{topic = <<"$SYS/", _/binary>>}, _By, _Reason, _Env) ->

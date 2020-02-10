@@ -205,7 +205,7 @@ unload() ->
 %% Init kafka server parameters
 ekaf_init(_Env) ->
     application:load(ekaf),
-    BootstrapBroker = {proplists:get_env(?APP, server), proplists:get_env(?APP, port)},
+    BootstrapBroker = {application:get_env(?APP, server), application:get_env(?APP, port)},
     %%PartitionStrategy= proplists:get_value(?APP, partition_strategy),
     %%application:set_env(ekaf, ekaf_partition_strategy, PartitionStrategy),
     application:set_env(ekaf, ekaf_bootstrap_broker, BootstrapBroker),

@@ -52,6 +52,7 @@
 
 %% Called when the plugin application start
 load(Env) ->
+    ekaf_init([Env]),
     emqx:hook('client.connect',      {?MODULE, on_client_connect, [Env]}),
     emqx:hook('client.connack',      {?MODULE, on_client_connack, [Env]}),
     emqx:hook('client.connected',    {?MODULE, on_client_connected, [Env]}),
@@ -147,6 +148,21 @@ on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
 
 on_message_publish(Message, _Env) ->
     io:format("Publish ~s~n", [emqx_message:format(Message)]),
+    {ok, KafkaTopic} = application:get_env(emqx_bridge_kafka, values),
+    ProduceTopic = proplists:get_value(kafka_producer_topic, KafkaTopic),
+    Topic=Message#message.topic,
+    Payload=Message#message.payload,
+    Qos=Message#message.qos,
+    %% Timestamp=Message#message.timestamp,
+    Json = jsx:encode([
+            {type,<<"published">>},
+            {topic,Topic},
+            {payload,Payload},
+            {qos,Qos},
+            {cluster_node,node()}
+            %% ,{ts,emqx_time:now_to_secs(Timestamp)}
+    ]),
+    ekaf:produce_async(ProduceTopic, Json),
     {ok, Message}.
 
 on_message_dropped(#message{topic = <<"$SYS/", _/binary>>}, _By, _Reason, _Env) ->
@@ -186,3 +202,13 @@ unload() ->
     emqx:unhook('message.acked',       {?MODULE, on_message_acked}),
     emqx:unhook('message.dropped',     {?MODULE, on_message_dropped}).
 
+%% Init kafka server parameters
+ekaf_init(_Env) ->
+    application:load(ekaf),
+    {ok, Values} = application:get_env(emqx_bridge_kafka, values),
+    BootstrapBroker = proplists:get_value(bootstrap_broker, Values),
+    PartitionStrategy= proplists:get_value(partition_strategy, Values),
+    application:set_env(ekaf, ekaf_partition_strategy, PartitionStrategy),
+    application:set_env(ekaf, ekaf_bootstrap_broker, BootstrapBroker),
+    {ok, _} = application:ensure_all_started(ekaf),
+    io:format("Initialized ekaf with ~p~n", [BootstrapBroker]).        

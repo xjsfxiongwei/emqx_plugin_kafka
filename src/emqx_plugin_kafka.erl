@@ -16,6 +16,7 @@
 
 -module(emqx_plugin_kafka).
 
+-include_lib("emqx_plugin_kafka.hrl").
 -include_lib("emqx/include/emqx.hrl").
 
 -export([ load/1

@@ -168,7 +168,7 @@ on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
 
 on_message_publish(Message, _Env) ->
     io:format("Publish ~s~n", [emqx_message:format(Message)]),
-    {ok, ProduceTopic} = application:get_env(?APP, dtopic),
+    {ok, ProduceTopic} = application:get_env(?APP, topic),
     Topic=Message#message.topic,
     Payload=Message#message.payload,
     Qos=Message#message.qos,

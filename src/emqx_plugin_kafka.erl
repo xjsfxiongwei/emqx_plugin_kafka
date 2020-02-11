@@ -108,10 +108,12 @@ on_client_connected(#{clientid := ClientId, username := Username, peerhost := Pe
             proto_ver => maps:get(proto_ver, ConnInfo),
             connected_at => maps:get(connected_at, ConnInfo),
             tm => calendar:local_time()},
-    send_kafka(etopic, Params).
+    send_kafka(etopic, Params),
+    ok;
 
 on_client_connected(#{}, _ConnInfo, _Env) ->
     ok.
+    
 on_client_disconnected(ClientInfo, {shutdown, Reason}, ConnInfo, Env) when is_atom(Reason) ->
     on_client_disconnected(ClientInfo, Reason, ConnInfo, Env);
 

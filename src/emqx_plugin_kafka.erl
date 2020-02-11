@@ -152,20 +152,11 @@ on_client_unsubscribe(#{clientid := ClientId, username := Username}, _Properties
 on_session_created(#{clientid := ClientId}, SessInfo, _Env) ->
     io:format("Session(~s) created, Session Info:~n~p~n", [ClientId, SessInfo]).
 
-on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubOpts, _Env) ->
-    Params = #{ action => session_subscribed
-                  , clientid => ClientId
-                  , username => Username
-                  , topic => Topic
-                  , opts => SubOpts
-                  }.
+on_session_subscribed(#{clientid := ClientId}, Topic, SubOpts, _Env) ->
+    io:format("Session(~s) subscribed ~s with subopts: ~p~n", [ClientId, Topic, SubOpts]).
 
-on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Opts, _Env) ->
-    Params = #{ action => session_unsubscribed
-                  , clientid => ClientId
-                  , username => Username
-                  , topic => Topic
-                  }.
+on_session_unsubscribed(#{clientid := ClientId}, Topic, Opts, _Env) ->
+    io:format("Session(~s) unsubscribed ~s with opts: ~p~n", [ClientId, Topic, Opts]).
 
 on_session_resumed(#{clientid := ClientId}, SessInfo, _Env) ->
     io:format("Session(~s) resumed, Session Info:~n~p~n", [ClientId, SessInfo]).

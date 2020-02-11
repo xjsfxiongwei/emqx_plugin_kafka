@@ -92,7 +92,7 @@ on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
     io:format("Client(~s) connected, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
               [ClientId, ClientInfo, ConnInfo]),
     ProduceTopic = application:get_env(?APP, etopic, <<"etopic">>),
-    {username := User, peerhost := Ipaddr } = ClientInfo,
+    #{username := User, peerhost := Ipaddr } = ClientInfo,
     Json = jsx:encode([
             {type, <<"onnected">>},
             {id, ClientId},
@@ -174,7 +174,7 @@ on_message_publish(Message =#{headers :=Headers}, _Env) ->
     Payload=Message#message.payload,
     Qos=Message#message.qos,
     Client=Message#message.from,
-    {peerhost := Host, username := User} = Headers,
+    #{peerhost := Host, username := User} = Headers,
     %% Timestamp=Message#message.Headers.timestamp,
     Json = jsx:encode([
             {type,<<"published">>},

@@ -168,15 +168,15 @@ on_session_terminated(_ClientInfo = #{clientid := ClientId}, Reason, SessInfo, _
 on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
     {ok, Message};
 
-on_message_publish(Message, _Env) ->
+on_message_publish(Message =#message{heads :=Headers}, _Env) ->
     io:format("Publish ~s~n", [emqx_message:format(Message)]),
     ProduceTopic = application:get_env(?APP, topic, <<"dtopic">>),
     Topic=Message#message.topic,
     Payload=Message#message.payload,
     Qos=Message#message.qos,
     Client=Message#message.from,
-    User=Message#message.Headers.username,
-    Ipaddr=Message#message.Headers.peerhost,
+    User=Headers.username,
+    Ipaddr=Headers.peerhost,
     %% Timestamp=Message#message.Headers.timestamp,
     Json = jsx:encode([
             {type,<<"published">>},

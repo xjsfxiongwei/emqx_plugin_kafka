@@ -253,8 +253,9 @@ ekaf_init(_Env) ->
     io:format("Initialized ekaf with ~p~n", [{Server, Port}]).    
 
 send_kafka(Topic, Param)->
-    Json = emqx_json:encode(Param),
     ProduceTopic = application:get_env(?APP, Topic, <<"dtopic">>),
+    io:format("send_kafka: ~s~n", [ProduceTopic]),
+    Json = emqx_json:encode(Param),
     ekaf:produce_async(list_to_binary(ProduceTopic), Json).
 
 format_from(#message{from = ClientId, headers = #{peerhost :=PeerHost, username := Username}}) ->

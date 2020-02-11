@@ -259,7 +259,7 @@ send_kafka(Topic, Param)->
     ekaf:produce_async(list_to_binary(ProduceTopic), Json).
 
 format_from(#message{from = ClientId, headers = #{peerhost :=PeerHost, username := Username}}) ->
-    {a2b(ClientId), a2b(Username), a2b(PeerHost)};
+    {a2b(ClientId), a2b(Username), iolist_to_binary(ntoa(a2b(PeerHost)))};
 format_from(#message{from = ClientId, headers = _HeadersNoUsername}) ->
     {a2b(ClientId), <<"undefined">>, <<"undefined">>}.
 

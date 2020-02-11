@@ -270,7 +270,7 @@ send_kafka(Topic, Param)->
 format_from(#message{from = ClientId, headers = #{peerhost :=PeerHost, username := Username}}) ->
     {a2b(ClientId), a2b(Username), a2b(PeerHost)};
 format_from(#message{from = ClientId, headers = _HeadersNoUsername}) ->
-    {a2b(ClientId), <<"undefined">>, <<"undefined">}.
+    {a2b(ClientId), <<"undefined">>, <<"undefined">>}.
 
 encode_payload(Payload) ->
     encode_payload(Payload, application:get_env(?APP, encode, undefined)).

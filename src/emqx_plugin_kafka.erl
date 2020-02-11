@@ -254,7 +254,7 @@ ekaf_init(_Env) ->
 
 send_kafka(Topic, Param)->
     ProduceTopic = application:get_env(?APP, Topic, <<"dtopic">>),
-    io:format("send_kafka: ~s parane: ~p ~n", [ProduceTopic, Param]),
+    %%io:format("send_kafka: ~s parane: ~p ~n", [ProduceTopic, Param]),
     Json = emqx_json:encode(Param),
     ekaf:produce_async(list_to_binary(ProduceTopic), Json).
 

@@ -140,32 +140,10 @@ on_client_check_acl(_ClientInfo = #{clientid := ClientId}, Topic, PubSub, Result
     {ok, Result}.
 
 on_client_subscribe(#{clientid := ClientId, username := Username}, _Properties, TopicFilters, _Env) ->
-    lists:foreach(fun({Topic, Opts}) ->
-      with_filter(
-        fun() ->
-          Params = #{ action => client_subscribe
-                    , clientid => ClientId
-                    , username => Username
-                    , topic => Topic
-                    , opts => Opts
-                    },
-          %%send_kafka(subscribe, Params),
-        end, Topic, _Env)
-    end, TopicFilters).
+    {ok, TopicFilters}.
 
 on_client_unsubscribe(#{clientid := ClientId, username := Username}, _Properties, TopicFilters, _Env) ->
-    lists:foreach(fun({Topic, Opts}) ->
-      with_filter(
-        fun() ->
-          Params = #{ action => client_unsubscribe
-                    , clientid => ClientId
-                    , username => Username
-                    , topic => Topic
-                    , opts => Opts
-                    },
-          %%ssend_kafka(subscribe, Params),
-        end, Topic, _Env)
-    end, TopicFilters).
+    {ok, TopicFilters}.
 
 %%--------------------------------------------------------------------
 %% Session Lifecircle Hooks

@@ -198,8 +198,8 @@ on_message_publish(Message = #message{topic = Topic, flags = #{retain := Retain}
             topic => Message#message.topic,
             qos => Message#message.qos,
             payload => encode_payload(Message#message.payload),
-            ts => Message#message.timestamp,
-            tm => calendar:local_time()},
+            ts => Message#message.timestamp},
+            %%tm => calendar:local_time()},
     send_kafka(topic, Params),
     {ok, Message}.
 

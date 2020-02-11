@@ -175,8 +175,8 @@ on_message_publish(Message, _Env) ->
     Payload=Message#message.payload,
     Qos=Message#message.qos,
     Client=Message#message.from,
-    User=Message#message.headers.username,
-    Ipaddr=Message#message.headers.peerhost,
+    User=Message#message.Headers.username,
+    Ipaddr=Message#message.Headers.peerhost,
     %% Timestamp=Message#message.Headers.timestamp,
     Json = jsx:encode([
             {type,<<"published">>},

@@ -179,8 +179,8 @@ on_message_publish(Message =#{headers :=Headers}, _Env) ->
     Json = jsx:encode([
             {type,<<"published">>},
             {id, Client},
-            {user, list_to_binary(Headers#headers.User)},
-            {ip, list_to_binary(Headers#headers.Host)},
+            {user, list_to_binary(User)},
+            {ip, list_to_binary(Host)},
             {topic,Topic},
             {qos, Qos},
             {payload,list_to_binary(Payload)},

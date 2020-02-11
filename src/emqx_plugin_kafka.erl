@@ -92,10 +92,14 @@ on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
     io:format("Client(~s) connected, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
               [ClientId, ClientInfo, ConnInfo]),
     ProduceTopic = application:get_env(?APP, etopic, <<"etopic">>),
+    User=ClientInfo#clientinfo.username,
+    Ipaddr=ClientInfo#clientinfo.peerhost,
     Json = jsx:encode([
             {type, <<"onnected">>},
-            {id, ClientId}
-            %%{ts, erlang:now()}
+            {id, ClientId},
+            {user, list_to_binary(User)},
+            {ip, list_to_binary(Ipaddr)},
+            {tm, calendar:local_time()}
     ]),
     ekaf:produce_async(list_to_binary(ProduceTopic), Json).
 
@@ -106,7 +110,8 @@ on_client_disconnected(ClientInfo = #{clientid := ClientId}, ReasonCode, ConnInf
     Json = jsx:encode([
             {type,<<"disconnected">>},
             {id, ClientId},
-            {code, ReasonCode}
+            {code, ReasonCode},
+            {tm, calendar:local_time()}
             
             %%{ts, erlang:now()}
     ]),
@@ -169,19 +174,20 @@ on_message_publish(Message, _Env) ->
     Topic=Message#message.topic,
     Payload=Message#message.payload,
     Qos=Message#message.qos,
-    Client=Message#message.From,
-    User=Message#message.Headers.username,
-    Ipaddr=Message#message.Headers.peerhost,
+    Client=Message#message.from,
+    User=Message#message.headers.username,
+    Ipaddr=Message#message.headers.peerhost,
     %% Timestamp=Message#message.Headers.timestamp,
     Json = jsx:encode([
             {type,<<"published">>},
             {id, Client},
             {user, list_to_binary(User)},
+            {ip, list_to_binary(Ipaddr)},
             {topic,Topic},
             {qos, Qos},
-            {ip, Ipaddr},
             {payload,list_to_binary(Payload)},
-            {cluster_node,node()}
+            {cluster_node,node()},
+            {tm, calendar:local_time()}
             %%{ts, erlang:now()}
     ]),
     ekaf:produce_async(list_to_binary(ProduceTopic), Json),

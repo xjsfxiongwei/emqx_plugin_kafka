@@ -150,7 +150,7 @@ on_client_subscribe(#{clientid := ClientId, username := Username}, _Properties, 
                     , opts => Opts
                     },
           %%send_kafka(subscribe, Params),
-        end, Topic, Filter)
+        end, Topic, _Env)
     end, TopicFilters).
 
 on_client_unsubscribe(#{clientid := ClientId, username := Username}, _Properties, TopicFilters, _Env) ->
@@ -164,7 +164,7 @@ on_client_unsubscribe(#{clientid := ClientId, username := Username}, _Properties
                     , opts => Opts
                     },
           %%ssend_kafka(subscribe, Params),
-        end, Topic, Filter)
+        end, Topic, _Env)
     end, TopicFilters).
 
 %%--------------------------------------------------------------------
@@ -179,7 +179,7 @@ on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubO
                   , clientid => ClientId
                   , username => Username
                   , topic => Topic
-                  , opts => Opts
+                  , opts => SubOpts
                   }.
 
 on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Opts, _Env) ->

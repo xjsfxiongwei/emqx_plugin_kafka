@@ -107,6 +107,7 @@ on_client_disconnected(ClientInfo = #{clientid := ClientId}, ReasonCode, ConnInf
             {type,<<"disconnected">>},
             {id, ClientId},
             {code, ReasonCode}
+            
             %%{ts, erlang:now()}
     ]),
     ekaf:produce_async(list_to_binary(ProduceTopic), Json).
@@ -168,12 +169,18 @@ on_message_publish(Message, _Env) ->
     Topic=Message#message.topic,
     Payload=Message#message.payload,
     Qos=Message#message.qos,
-    %% Timestamp=Message#message.timestamp,
+    Client=Message#message.From,
+    User=Message#message.Headers.username,
+    Ipaddr=Message#message.Headers.peerhost,
+    %% Timestamp=Message#message.Headers.timestamp,
     Json = jsx:encode([
             {type,<<"published">>},
+            {id, Client},
+            {user, list_to_binary(User)},
             {topic,Topic},
-            {payload,Payload},
             {qos, Qos},
+            {ip, Ipaddr},
+            {payload,list_to_binary(Payload)},
             {cluster_node,node()}
             %%{ts, erlang:now()}
     ]),

@@ -113,7 +113,7 @@ on_client_connected(#{clientid := ClientId, username := Username, peerhost := Pe
 
 on_client_connected(#{}, _ConnInfo, _Env) ->
     ok.
-    
+
 on_client_disconnected(ClientInfo, {shutdown, Reason}, ConnInfo, Env) when is_atom(Reason) ->
     on_client_disconnected(ClientInfo, Reason, ConnInfo, Env);
 
@@ -140,22 +140,32 @@ on_client_check_acl(_ClientInfo = #{clientid := ClientId}, Topic, PubSub, Result
     {ok, Result}.
 
 on_client_subscribe(#{clientid := ClientId, username := Username}, _Properties, TopicFilters, _Env) ->
-    Params = #{ action => client_subscribe
+    lists:foreach(fun({Topic, Opts}) ->
+      with_filter(
+        fun() ->
+          Params = #{ action => client_subscribe
                     , clientid => ClientId
                     , username => Username
                     , topic => Topic
                     , opts => Opts
                     },
-    {ok, TopicFilters}.
+          %%send_kafka(subscribe, Params),
+        end, Topic, Filter)
+    end, TopicFilters).
 
 on_client_unsubscribe(#{clientid := ClientId, username := Username}, _Properties, TopicFilters, _Env) ->
-    Params = #{ action => client_unsubscribe
+    lists:foreach(fun({Topic, Opts}) ->
+      with_filter(
+        fun() ->
+          Params = #{ action => client_unsubscribe
                     , clientid => ClientId
                     , username => Username
                     , topic => Topic
                     , opts => Opts
                     },
-    {ok, TopicFilters}.
+          %%ssend_kafka(subscribe, Params),
+        end, Topic, Filter)
+    end, TopicFilters).
 
 %%--------------------------------------------------------------------
 %% Session Lifecircle Hooks
@@ -203,13 +213,13 @@ on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
 on_message_publish(Message = #message{topic = Topic, flags = #{retain := Retain}}, _Env) ->
     {FromClientId, FromUsername, Peerhost} = format_from(Message),
     Params = #{
-            action => published ,
+            action => published,
             clientid => FromClientId,
             username => FromUsername,
             ipaddress => Peerhost,
             topic => Message#message.topic,
             qos => Message#message.qos,
-            payload => encode_payload(Payload),
+            payload => encode_payload(Message#message.payload),
             ts => Message#message.timestamp,
             tm => calendar:local_time()},
     send_kafka(topic, Params),
@@ -265,7 +275,7 @@ ekaf_init(_Env) ->
     io:format("Initialized ekaf with ~p~n", [{Server, Port}]).    
 
 send_kafka(Topic, Param)->
-    Params1 = emqx_json:encode(Params),
+    Json = emqx_json:encode(Param),
     ProduceTopic = application:get_env(?APP, Topic, <<"dtopic">>),
     ekaf:produce_async(list_to_binary(ProduceTopic), Json).
 

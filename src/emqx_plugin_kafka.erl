@@ -78,43 +78,55 @@ load(Env) ->
 %% Client Lifecircle Hooks
 %%--------------------------------------------------------------------
 
-on_client_connect(ConnInfo = #{clientid := ClientId}, Props, _Env) ->
-    io:format("Client(~s) connect, ConnInfo: ~p, Props: ~p~n",
-              [ClientId, ConnInfo, Props]),
+on_client_connect(ConnInfo = #{clientid := ClientId, username := Username, peername := {Peerhost, _}}, Props, _Env) ->
+    Params = #{ action => client_connect
+              , clientid => ClientId
+              , username => Username
+              , ipaddress => iolist_to_binary(ntoa(Peerhost))
+              , keepalive => maps:get(keepalive, ConnInfo)
+              , proto_ver => maps:get(proto_ver, ConnInfo)
+              },
     {ok, Props}.
 
-on_client_connack(ConnInfo = #{clientid := ClientId}, Rc, Props, _Env) ->
-    io:format("Client(~s) connack, ConnInfo: ~p, Rc: ~p, Props: ~p~n",
-              [ClientId, ConnInfo, Rc, Props]),
+on_client_connack(ConnInfo = #{clientid := ClientId, username := Username, peername := {Peerhost, _}}, Rc, Props, _Env) ->
+    Params = #{ action => client_connack
+              , clientid => ClientId
+              , username => Username
+              , ipaddress => iolist_to_binary(ntoa(Peerhost))
+              , keepalive => maps:get(keepalive, ConnInfo)
+              , proto_ver => maps:get(proto_ver, ConnInfo)
+              , conn_ack => Rc
+              },
     {ok, Props}.
 
-on_client_connected(ClientInfo = #{clientid := ClientId}, ConnInfo, _Env) ->
-    io:format("Client(~s) connected, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
-              [ClientId, ClientInfo, ConnInfo]),
-    ProduceTopic = application:get_env(?APP, etopic, <<"etopic">>),
-    #{username := User, peerhost := Ipaddr } = ClientInfo,
-    Json = jsx:encode([
-            {type, <<"onnected">>},
-            {id, ClientId},
-            {user, list_to_binary(User)},
-            {ip, list_to_binary(Ipaddr)},
-            {tm, calendar:local_time()}
-    ]),
-    ekaf:produce_async(list_to_binary(ProduceTopic), Json).
+on_client_connected(#{clientid := ClientId, username := Username, peerhost := Peerhost}, ConnInfo, _Env) ->
+    Params = #{ action => onnected,
+            clientid => ClientId,
+            username => Username,
+            ipaddress => iolist_to_binary(ntoa(Peerhost)),
+            keepalive => maps:get(keepalive, ConnInfo),
+            proto_ver => maps:get(proto_ver, ConnInfo),
+            connected_at => maps:get(connected_at, ConnInfo),
+            tm => calendar:local_time()},
+    send_kafka(etopic, Params).
 
-on_client_disconnected(ClientInfo = #{clientid := ClientId}, ReasonCode, ConnInfo, _Env) ->
-    io:format("Client(~s) disconnected due to ~p, ClientInfo:~n~p~n, ConnInfo:~n~p~n",
-              [ClientId, ReasonCode, ClientInfo, ConnInfo]),
-    ProduceTopic = application:get_env(?APP, etopic, <<"etopic">>),
-    Json = jsx:encode([
-            {type,<<"disconnected">>},
-            {id, ClientId},
-            {code, ReasonCode},
-            {tm, calendar:local_time()}
-            
-            %%{ts, erlang:now()}
-    ]),
-    ekaf:produce_async(list_to_binary(ProduceTopic), Json).
+on_client_connected(#{}, _ConnInfo, _Env) ->
+    ok.
+on_client_disconnected(ClientInfo, {shutdown, Reason}, ConnInfo, Env) when is_atom(Reason) ->
+    on_client_disconnected(ClientInfo, Reason, ConnInfo, Env);
+
+on_client_disconnected(#{clientid := ClientId, username := Username}, Reason, ConnInfo, _Env) ->
+    Params = #{ action => disconnected,
+            clientid => ClientId,
+            username => Username,
+            code => printable(Reason),
+            tm => calendar:local_time()},
+    send_kafka(etopic, Params).
+
+printable(Term) when is_atom(Term); is_binary(Term) ->
+    Term;
+printable(Term) when is_tuple(Term) ->
+    iolist_to_binary(io_lib:format("~p", [Term])).
 
 on_client_authenticate(_ClientInfo = #{clientid := ClientId}, Result, _Env) ->
     io:format("Client(~s) authenticate, Result:~n~p~n", [ClientId, Result]),
@@ -125,12 +137,22 @@ on_client_check_acl(_ClientInfo = #{clientid := ClientId}, Topic, PubSub, Result
               [ClientId, PubSub, Topic, Result]),
     {ok, Result}.
 
-on_client_subscribe(#{clientid := ClientId}, _Properties, TopicFilters, _Env) ->
-    io:format("Client(~s) will subscribe: ~p~n", [ClientId, TopicFilters]),
+on_client_subscribe(#{clientid := ClientId, username := Username}, _Properties, TopicFilters, _Env) ->
+    Params = #{ action => client_subscribe
+                    , clientid => ClientId
+                    , username => Username
+                    , topic => Topic
+                    , opts => Opts
+                    },
     {ok, TopicFilters}.
 
-on_client_unsubscribe(#{clientid := ClientId}, _Properties, TopicFilters, _Env) ->
-    io:format("Client(~s) will unsubscribe ~p~n", [ClientId, TopicFilters]),
+on_client_unsubscribe(#{clientid := ClientId, username := Username}, _Properties, TopicFilters, _Env) ->
+    Params = #{ action => client_unsubscribe
+                    , clientid => ClientId
+                    , username => Username
+                    , topic => Topic
+                    , opts => Opts
+                    },
     {ok, TopicFilters}.
 
 %%--------------------------------------------------------------------
@@ -140,11 +162,20 @@ on_client_unsubscribe(#{clientid := ClientId}, _Properties, TopicFilters, _Env) 
 on_session_created(#{clientid := ClientId}, SessInfo, _Env) ->
     io:format("Session(~s) created, Session Info:~n~p~n", [ClientId, SessInfo]).
 
-on_session_subscribed(#{clientid := ClientId}, Topic, SubOpts, _Env) ->
-    io:format("Session(~s) subscribed ~s with subopts: ~p~n", [ClientId, Topic, SubOpts]).
+on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubOpts, _Env) ->
+    Params = #{ action => session_subscribed
+                  , clientid => ClientId
+                  , username => Username
+                  , topic => Topic
+                  , opts => Opts
+                  }.
 
-on_session_unsubscribed(#{clientid := ClientId}, Topic, Opts, _Env) ->
-    io:format("Session(~s) unsubscribed ~s with opts: ~p~n", [ClientId, Topic, Opts]).
+on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Opts, _Env) ->
+    Params = #{ action => session_unsubscribed
+                  , clientid => ClientId
+                  , username => Username
+                  , topic => Topic
+                  }.
 
 on_session_resumed(#{clientid := ClientId}, SessInfo, _Env) ->
     io:format("Session(~s) resumed, Session Info:~n~p~n", [ClientId, SessInfo]).
@@ -167,28 +198,19 @@ on_session_terminated(_ClientInfo = #{clientid := ClientId}, Reason, SessInfo, _
 on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
     {ok, Message};
 
-on_message_publish(Message, _Env) ->
-    io:format("Publish ~s~n", [emqx_message:format(Message)]),
-    ProduceTopic = application:get_env(?APP, topic, <<"dtopic">>),
-    Topic=Message#message.topic,
-    Payload=Message#message.payload,
-    Qos=Message#message.qos,
-    Client=Message#message.from,
-    #{headers :=#{peerhost := Host, username := User}} = Message,
-    %% Timestamp=Message#message.Headers.timestamp,
-    Json = jsx:encode([
-            {type,<<"published">>},
-            {id, Client},
-            {user, list_to_binary(User)},
-            {ip, list_to_binary(Host)},
-            {topic,Topic},
-            {qos, Qos},
-            {payload,list_to_binary(Payload)},
-            {cluster_node,node()},
-            {tm, calendar:local_time()}
-            %%{ts, erlang:now()}
-    ]),
-    ekaf:produce_async(list_to_binary(ProduceTopic), Json),
+on_message_publish(Message = #message{topic = Topic, flags = #{retain := Retain}}, _Env) ->
+    {FromClientId, FromUsername, Peerhost} = format_from(Message),
+    Params = #{
+            action => published ,
+            clientid => FromClientId,
+            username => FromUsername,
+            ipaddress => Peerhost,
+            topic => Message#message.topic,
+            qos => Message#message.qos,
+            payload => encode_payload(Payload),
+            ts => Message#message.timestamp,
+            tm => calendar:local_time()},
+    send_kafka(topic, Params),
     {ok, Message}.
 
 on_message_dropped(#message{topic = <<"$SYS/", _/binary>>}, _By, _Reason, _Env) ->
@@ -239,3 +261,28 @@ ekaf_init(_Env) ->
     application:set_env(ekaf, ekaf_bootstrap_broker, {Server, Port}),
     {ok, _} = application:ensure_all_started(ekaf),
     io:format("Initialized ekaf with ~p~n", [{Server, Port}]).    
+
+send_kafka(Topic, Param)->
+    Params1 = emqx_json:encode(Params),
+    ProduceTopic = application:get_env(?APP, Topic, <<"dtopic">>),
+    ekaf:produce_async(list_to_binary(ProduceTopic), Json).
+
+format_from(#message{from = ClientId, headers = #{peerhost :=PeerHost, username := Username}}) ->
+    {a2b(ClientId), a2b(Username), a2b(PeerHost)};
+format_from(#message{from = ClientId, headers = _HeadersNoUsername}) ->
+    {a2b(ClientId), <<"undefined">>, <<"undefined">}.
+
+encode_payload(Payload) ->
+    encode_payload(Payload, application:get_env(?APP, encode, undefined)).
+
+encode_payload(Payload, base62) -> emqx_base62:encode(Payload);
+encode_payload(Payload, base64) -> base64:encode(Payload);
+encode_payload(Payload, _) -> Payload.
+
+a2b(A) when is_atom(A) -> erlang:atom_to_binary(A, utf8);
+a2b(A) -> A.
+
+ntoa({0,0,0,0,0,16#ffff,AB,CD}) ->
+    inet_parse:ntoa({AB bsr 8, AB rem 256, CD bsr 8, CD rem 256});
+ntoa(IP) ->
+    inet_parse:ntoa(IP).

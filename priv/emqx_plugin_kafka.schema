@@ -30,3 +30,9 @@
   {datatype, integer}
 ]}.
 
+
+{mapping, "kafka.hook.encode", "emqx_plugin_kafka.encode", [
+  {default, undefined},
+  {datatype, {enum, [base62, base64]}}
+]}.
+

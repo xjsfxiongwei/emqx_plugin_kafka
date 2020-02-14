@@ -118,6 +118,7 @@ on_client_disconnected(ClientInfo, {shutdown, Reason}, ConnInfo, Env) when is_at
     on_client_disconnected(ClientInfo, Reason, ConnInfo, Env);
 
 on_client_disconnected(#{clientid := ClientId, username := Username}, Reason, ConnInfo, _Env) ->
+    io:format("on_client_disconnected: ~p~n", [ClientId, Username]),
     Params = #{ action => disconnected,
             clientid => ClientId,
             username => Username,
